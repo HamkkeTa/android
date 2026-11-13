@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">HamkkeTa</string>
+    <string name="home_greeting">Hello %1$s!</string>
+    <string name="home_name_label">이름</string>
+</resources>

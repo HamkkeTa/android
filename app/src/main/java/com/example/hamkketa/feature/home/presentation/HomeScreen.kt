@@ -21,7 +21,10 @@ import com.example.hamkketa.feature.boarding.presentation.RiderStatusRoute
 import com.example.hamkketa.ui.theme.HamkkeTaTheme
 
 @Composable
-fun HomeRoute(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
+fun GreetingExampleRoute(
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     Box(modifier = modifier.fillMaxSize()) {
         HomeScreen(state = state, onIntent = viewModel::onIntent)

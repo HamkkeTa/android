@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            HamkkeTaTheme {
+            HamkkeTaTheme(darkTheme = false) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     HamkkeTaNavHost(modifier = Modifier.padding(innerPadding))
                 }

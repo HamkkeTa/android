@@ -2,4 +2,10 @@
     <string name="app_name">HamkkeTa</string>
     <string name="home_greeting">Hello %1$s!</string>
     <string name="home_name_label">이름</string>
+    <string name="boarding_channel_name">탑승 세션</string>
+    <string name="boarding_notification_title">함께타 탑승 세션 진행 중</string>
+    <plurals name="rider_status_description">
+        <item quantity="one">탑승 인원 %d명</item>
+        <item quantity="other">탑승 인원 %d명</item>
+    </plurals>
 </resources>

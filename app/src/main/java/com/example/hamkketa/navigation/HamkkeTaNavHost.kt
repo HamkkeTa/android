@@ -15,7 +15,7 @@ fun HamkkeTaNavHost(modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
         startDestination = HOME_ROUTE,
-        modifier = modifier,
+        modifier = modifier
     ) {
         composable(HOME_ROUTE) {
             HomeRoute()

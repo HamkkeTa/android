@@ -21,10 +21,7 @@ import com.example.hamkketa.feature.boarding.presentation.RiderStatusRoute
 import com.example.hamkketa.ui.theme.HamkkeTaTheme
 
 @Composable
-fun HomeRoute(
-    modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel(),
-) {
+fun HomeRoute(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     Box(modifier = modifier.fillMaxSize()) {
         HomeScreen(state = state, onIntent = viewModel::onIntent)
@@ -34,21 +31,17 @@ fun HomeRoute(
 
 // A small editable greeting demonstrates state -> UI -> intent without a backend.
 @Composable
-fun HomeScreen(
-    state: HomeState,
-    onIntent: (HomeIntent) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun HomeScreen(state: HomeState, onIntent: (HomeIntent) -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(text = stringResource(R.string.home_greeting, state.name))
         OutlinedTextField(
             value = state.name,
             onValueChange = { onIntent(HomeIntent.NameChanged(it)) },
             label = { Text(stringResource(R.string.home_name_label)) },
-            singleLine = true,
+            singleLine = true
         )
     }
 }

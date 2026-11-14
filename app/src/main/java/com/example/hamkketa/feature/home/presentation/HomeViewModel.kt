@@ -6,11 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
-) : MviViewModel<HomeState, HomeIntent>(
-    HomeState(name = savedStateHandle[NAME_KEY] ?: "Android"),
-) {
+class HomeViewModel @Inject constructor(private val savedStateHandle: SavedStateHandle) :
+    MviViewModel<HomeState, HomeIntent>(
+        HomeState(name = savedStateHandle[NAME_KEY] ?: "Android")
+    ) {
     override fun onIntent(intent: HomeIntent) {
         when (intent) {
             is HomeIntent.NameChanged -> {

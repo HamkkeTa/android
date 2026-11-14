@@ -31,6 +31,7 @@ import org.junit.runner.RunWith
 /**
  * Acts as a passenger phone against a car that has an open boarding session.
  * Skipped unless run with -Pandroid.testInstrumentationRunnerArguments.passengerSim=true,
+ * optionally with memberId (default member-1) and holdSeconds (default 8),
  * because it needs a second device (the car) advertising nearby.
  */
 @SuppressLint("MissingPermission")
@@ -54,6 +55,8 @@ class PassengerSimulatorTest {
     @Test
     fun groupMemberBoardsAndStrangerIsRejected() {
         val holdMillis = (arguments.getString("holdSeconds") ?: "8").toLong() * 1000
+        // Each simulated phone needs its own member id to count as a separate rider.
+        val memberId = arguments.getString("memberId") ?: "member-1"
         val gatt = scanForCar().connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
         try {
             assertEquals(Event.Connected, events.next())
@@ -62,7 +65,7 @@ class PassengerSimulatorTest {
             val join = gatt.getService(SERVICE_UUID)?.getCharacteristic(JOIN_CHARACTERISTIC_UUID)
             assertNotNull("함께타 서비스/특성 없음", join)
 
-            assertEquals(BluetoothGatt.GATT_SUCCESS, gatt.write(join!!, "member-1"))
+            assertEquals(BluetoothGatt.GATT_SUCCESS, gatt.write(join!!, memberId))
             // Time to look at the car screen: one rider icon should be visible.
             Thread.sleep(holdMillis)
 

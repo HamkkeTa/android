@@ -1,43 +1,104 @@
-# HamkkeTa
+# 함께타 (HamkkeTa)
 
-Kotlin + Jetpack Compose Android 앱. 단일 app 모듈에 MVI Home 예제와 Navigation/Hilt 진입점을 연결했습니다. 아래 라이브러리는 기능 개발을 위한 기반 설정입니다.
+미리 등록한 동승자의 탑승 구간에 따라 차량 운행비를 계산하고 나누는 차량용 카풀 정산 앱입니다.
 
-## 개발 환경
+## 실행 방법
 
-- Android Studio에서 이 프로젝트를 열고 Gradle Sync를 실행합니다.
-- Gradle 실행 JDK: 17 이상. Android Studio의 Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JDK에서 설정합니다.
-- SDK Manager: Android SDK Platform 36.1, Android SDK Build-Tools 36.0.0, Platform-Tools를 설치합니다.
-- JVM 바이트코드는 Java/Kotlin 모두 11입니다. Gradle 실행 JDK와 앱의 바이트코드 대상은 별개입니다.
-- SDK 경로는 각 개발자의 local.properties에 두며 저장소에 포함하지 않습니다.
-- Gradle Wrapper 체크섬 검증은 기존 설정을 유지합니다.
+### Android Studio에서 실행
 
-## 적용 스택
+1. 프로젝트를 열고 Gradle Sync를 실행합니다.
+2. Device Manager에서 **Pleos Connect v2.1.0** 에뮬레이터를 실행합니다.
+3. 실행 모듈을 `app`으로 선택하고 에뮬레이터에 설치·실행합니다.
+4. 앱에서 요청하는 근처 기기(블루투스) 권한을 허용합니다.
 
-| 구분 | 설정 |
-|---|---|
-| 빌드 | AGP 9.1.1 / Gradle 9.3.1 / Kotlin DSL |
-| Kotlin | AGP 내장 Kotlin 2.2.10 / Compose compiler plugin 2.2.10 |
-| SDK | compileSdk 36.1 / targetSdk 36 / minSdk 28 |
-| 바이트코드 | Java 11 / Kotlin JVM 11 |
-| UI | Compose BOM 2026.02.01 / Material 3 |
-| AndroidX 기반 | Core 1.17.0 / Activity 1.12.4 / Lifecycle 2.10.0 |
-| 화면 이동 | Navigation Compose 2.9.0 의존성 |
-| 상태 및 비동기 | Lifecycle ViewModel·Compose 연동 / Coroutines 1.10.1 / StateFlow 사용 가능 |
-| DI | Hilt 2.59.2 / AndroidX Hilt 1.3.0 / KSP2 2.3.12 |
-| 통신 | Retrofit 2.11.0 / converter-gson / OkHttp 4.12.0 / INTERNET 권한 |
-| 저장 | DataStore Preferences 1.1.4 / Room 2.7.1 + KSP compiler |
-| 이미지 | Coil Compose 2.7.0 |
-| 품질 | ktlint Gradle plugin 14.2.0 / .editorconfig / JUnit / Espresso / Compose UI Test |
-| 테스트 도구 | Coroutines Test / MockWebServer |
+### APK로 실행
 
-버전은 gradle/libs.versions.toml에서 관리합니다. 최신 버전 일괄 도입보다 기존 프로젝트 스택과 현재 SDK의 호환성을 우선했습니다.
+저장소의 [차량 앱 APK](apk/Beyond_HamkkeTa_release.apk)를 내려받아 실행 중인 에뮬레이터에 설치합니다.
+아래 명령은 Android SDK의 `platform-tools`가 PATH에 등록된 환경을 기준으로 합니다.
 
-## 버전 선택 이유
+```powershell
+adb install -r apk/Beyond_HamkkeTa_release.apk
+adb shell am start -n com.example.hamkketa/.MainActivity
+```
 
-- 이미 구성된 AGP 9.1.1 / Gradle 9.3.1을 유지했습니다. Kotlin Android 플러그인을 별도로 추가하지 않습니다.
-- Hilt 2.56 대신 AGP 9를 지원하는 2.59.2를 사용합니다. Hilt 2.60부터의 Kotlin 도구 변경을 함께 도입하지 않았습니다.
-- KSP는 이전 Kotlin 버전이 접두사로 붙는 1.x 대신 KSP2를 사용합니다. 2.3.13에는 공식 릴리스 노트에 동시 실행 회귀가 공지되어 있어 2.3.12로 고정했습니다.
-- Lifecycle 2.11의 Compose 모듈은 SDK 37 및 AGP 9.2 이상을 요구하므로 2.10.0을 사용합니다. Core와 Activity도 SDK 36 시기에 배포된 1.17.0 / 1.12.4로 맞췄습니다.
-- AndroidX Hilt는 SDK 37을 요구하는 1.4 대신 1.3.0을 사용합니다.
-- Compose BOM과 Compose compiler 버전은 별도로 관리합니다. compiler plugin 버전은 Kotlin과 맞춥니다.
-- Coil은 이전 프로젝트의 2.x API를 유지하면서 2.7.0을 사용합니다.
+### 직접 빌드
+
+프로젝트 루트에서 실행합니다. 아래는 Windows PowerShell 기준이며, macOS/Linux에서는 `./gradlew`를 사용합니다.
+
+```powershell
+.\gradlew.bat :app:assembleDebug
+```
+
+빌드 결과는 `app/build/outputs/apk/debug/app-debug.apk`에 생성됩니다.
+
+## 테스트 환경 및 필요한 설정
+
+### 개발 환경
+
+- Android Studio, Gradle 실행 JDK **17 이상**
+- Android SDK Platform **36.1**, Build-Tools **36.0.0**, Platform-Tools
+- SDK 경로는 Android Studio에서 설정하거나 각 개발자의 `local.properties`에 지정합니다.
+- 빌드 도구: Gradle **9.3.1**, Android Gradle Plugin **9.1.1**
+- 앱 SDK 설정: `minSdk 28`, `targetSdk 36`, `compileSdk 36.1`
+
+### 에뮬레이터에서 정산 테스트
+
+1. 앱의 **운행 설정 · 테스트 · 실제 장부** 화면을 엽니다.
+2. 휘발유 연비와 단가를 입력하고 **에뮬레이터 수동**을 눌러 저장합니다.
+3. 누적 주행거리(예: `1000 km`)를 입력하고 **누적 거리 반영**을 누릅니다.
+4. 그룹 화면으로 돌아가 해당 그룹의 **자동 시작**을 누릅니다.
+5. 테스트 화면에서 **도어 열림 → 닫힘 테스트** 후 동승자의 **연결 / 재연결**을 누릅니다.
+6. 누적 거리를 증가시키며 중간 탑승·연결 해제·재연결을 시험합니다.
+7. **운행 종료** 또는 그룹의 **취소하기**를 누르고 장부에서 구간별 내역과 개인 부담액을 확인합니다.
+
+- 그룹에 등록된 사람을 모두 탑승으로 간주하지 않으며, 탑승 판정을 통과한 사람만 계산에 포함합니다.
+- 기본 판정값: RSSI **-65 dBm 이상**, 최근 **60초 이내 도어 개폐**, 연결 해제 후 **30초 유예**입니다. 파일럿용 값이며 실차 보정 전입니다.
+- 유예 안에 재연결하면 같은 탑승을 유지합니다. 하차가 확정되면 처음 연결이 끊긴 거리를 기준으로 계산합니다.
+- 좌석을 지정하지 않으므로 착석 센서 조건은 제외합니다.
+- 유가 API는 미연동이며 연비·단가를 직접 입력합니다. 통행료·주차비 등 추가 비용도 수동 입력합니다.
+- 앱 중단이나 거리 누락이 있는 기록은 정산 보류로 표시하고 누적 정산 요청에서 제외합니다.
+
+### 차량 SDK 및 BLE 검증 범위
+
+**차량 SDK** 모드에서는 Pleos Vehicle SDK로 주행거리와 도어 상태를 받습니다. 개발 에뮬레이터에서 누적 거리 `0.0 km`와 객실 도어 닫힘 상태 수신을 확인했습니다. 실제 거리 증가·도어 개폐에 따른 탑승 및 기기 간 BLE 무선 통신은 추가 검증이 필요합니다.
+
+서비스는 **동승자 앱 설치 없음**을 목표로 하지만, 현재 BLE GATT 검증에는 개발용 `passenger-test` 앱이 필요합니다. 일반 휴대폰 페어링만으로 앱 없는 자동 탑승 인식이 구현된 상태는 아닙니다. 카카오톡 자동 발송도 미연동이며 정산 요청 문구 복사까지만 제공합니다.
+
+```powershell
+# 개발용 동승자 테스트 앱 빌드
+.\gradlew.bat :passenger-test:assembleDebug
+
+# 정산 로직 단위 테스트
+.\gradlew.bat :app:testDebugUnitTest
+```
+
+개발용 동승자 앱에는 차량 테스트 화면에 표시된 그룹원의 **연결 ID**를 입력합니다. 앱은 전경에서만 동작하며, 에뮬레이터의 BLE 무선 지원이 없으면 차량 앱의 수동 이벤트로 계산 흐름을 확인합니다.
+
+## 개발에 사용한 에뮬레이터 및 화면 규격
+
+| 항목 | 개발·테스트 기준 |
+| --- | --- |
+| 에뮬레이터 | Pleos Connect **v2.1.0** |
+| AVD ID | `Pleos_Connect_v2.1.0` |
+| 운영체제 | Android **14 (API 34)** |
+| 시스템 이미지 | `android-34 / pleos_car_emulator / x86_64` |
+| 전체 화면 해상도 | **2560 × 1440 px** |
+| 화면 방향 | 가로(Landscape) |
+| 화면 밀도 | **160 dpi** |
+| Pleos Vehicle SDK | **2.3.2** |
+
+해상도는 에뮬레이터 전체 화면 기준입니다. 앱은 시스템의 차량 정보 패널과 하단 바를 제외한 영역에 표시됩니다. 주행 제한 상태에서는 조작 화면 대신 탑승 현황 아이콘과 인원수만 표시합니다.
+
+## APK 파일 위치
+
+| 구분 | 경로 |
+| --- | --- |
+| 저장소에 포함된 차량 앱 APK | [apk/Beyond_HamkkeTa_release.apk](apk/Beyond_HamkkeTa_release.apk) |
+| 차량 앱 직접 빌드 결과 | `app/build/outputs/apk/debug/app-debug.apk` |
+| 개발용 동승자 앱 빌드 결과 | `passenger-test/build/outputs/apk/debug/passenger-test-debug.apk` |
+
+현재 저장소 APK는 파일명에 `release`가 포함되어 있으나 실제로는 **디버그 빌드**입니다. 배포용 릴리스 서명 APK와 구분해 테스트에 사용합니다. 직접 빌드해도 저장소의 `apk/` 파일이 자동으로 갱신되지는 않습니다.
+
+## 최종 커밋 번호(commit hash)
+
+74567f0

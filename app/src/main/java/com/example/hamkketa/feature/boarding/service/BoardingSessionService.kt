@@ -20,6 +20,8 @@ import javax.inject.Inject
 class BoardingSessionService : Service() {
     @Inject lateinit var sessionRepository: BoardingSessionRepository
 
+    @Inject lateinit var trips: com.example.hamkketa.data.ride.TripRepository
+
     override fun onCreate() {
         super.onCreate()
         val channel =
@@ -42,12 +44,14 @@ class BoardingSessionService : Service() {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
         )
         sessionRepository.open()
+        trips.startPolling()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onDestroy() {
         sessionRepository.close()
+        trips.stopPolling()
         super.onDestroy()
     }
 

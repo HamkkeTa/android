@@ -41,7 +41,8 @@ import kotlinx.coroutines.flow.update
 @Singleton
 class BleBoardingSessionRepository @Inject constructor(
     @ApplicationContext context: Context,
-    private val groupRepository: RideGroupRepository
+    private val groupRepository: RideGroupRepository,
+    private val trips: com.example.hamkketa.data.ride.TripRepository
 ) : BoardingSessionRepository {
     private val applicationContext = context
     private val mutableState = MutableStateFlow(BoardingState())
@@ -115,6 +116,9 @@ class BleBoardingSessionRepository @Inject constructor(
                     synchronized(this@BleBoardingSessionRepository) {
                         val address = device.address
                         if (mutableState.value.ridersByConnection[address] == null) return
+                        trips.disconnected(
+                            mutableState.value.ridersByConnection.getValue(address).id
+                        )
                         pendingAlights.remove(address)?.let(handler::removeCallbacks)
                         val task = object : Runnable {
                             override fun run() {
@@ -140,6 +144,27 @@ class BleBoardingSessionRepository @Inject constructor(
                 offset: Int,
                 value: ByteArray?
             ) {
+                if (characteristic.uuid == RSSI_CHARACTERISTIC_UUID) {
+                    val member = mutableState.value.ridersByConnection[device.address]
+                    val rssi = value?.decodeToString()?.toIntOrNull()
+                    val valid =
+                        member != null &&
+                            rssi != null &&
+                            rssi in -127..0 &&
+                            !preparedWrite &&
+                            offset == 0
+                    if (valid) trips.signal(member!!.id, rssi!!)
+                    if (responseNeeded) {
+                        gattServer?.sendResponse(
+                            device,
+                            requestId,
+                            if (valid) BluetoothGatt.GATT_SUCCESS else BluetoothGatt.GATT_FAILURE,
+                            0,
+                            null
+                        )
+                    }
+                    return
+                }
                 // Untrusted input from any nearby device: accept only a short id that is in the group.
                 val member =
                     value
@@ -152,6 +177,8 @@ class BleBoardingSessionRepository @Inject constructor(
                             groupRepository.activeGroup.value?.findMember(it.decodeToString())
                         }
                 if (member != null) {
+                    // Existing riders resume immediately; -127 cannot board a new rider.
+                    trips.signal(member.id, -127)
                     synchronized(this@BleBoardingSessionRepository) {
                         if (gattServer == null) return
                         val oldConnections = mutableState.value.ridersByConnection
@@ -206,6 +233,13 @@ class BleBoardingSessionRepository @Inject constructor(
         BluetoothGattService(SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY).apply {
             addCharacteristic(
                 BluetoothGattCharacteristic(
+                    RSSI_CHARACTERISTIC_UUID,
+                    BluetoothGattCharacteristic.PROPERTY_WRITE,
+                    BluetoothGattCharacteristic.PERMISSION_WRITE
+                )
+            )
+            addCharacteristic(
+                BluetoothGattCharacteristic(
                     JOIN_CHARACTERISTIC_UUID,
                     BluetoothGattCharacteristic.PROPERTY_WRITE,
                     BluetoothGattCharacteristic.PERMISSION_WRITE
@@ -232,6 +266,7 @@ class BleBoardingSessionRepository @Inject constructor(
         // Shared with the passenger app; changing these breaks pairing with released apps.
         val SERVICE_UUID: UUID = UUID.fromString("6b3f1a52-2c4e-4d8a-9b61-3a0f5e7c9d10")
         val JOIN_CHARACTERISTIC_UUID: UUID = UUID.fromString("6b3f1a53-2c4e-4d8a-9b61-3a0f5e7c9d10")
+        val RSSI_CHARACTERISTIC_UUID: UUID = UUID.fromString("6b3f1a54-2c4e-4d8a-9b61-3a0f5e7c9d10")
         private const val MAX_MEMBER_ID_BYTES = 64
         private const val TAG = "BoardingSession"
 

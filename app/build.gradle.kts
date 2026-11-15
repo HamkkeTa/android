@@ -9,6 +9,7 @@ plugins {
 }
 
 android {
+    useLibrary("android.car", false)
     namespace = "com.example.hamkketa"
     compileSdk {
         version = release(36) {

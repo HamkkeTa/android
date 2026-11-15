@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "HamkkeTa"
 include(":app")
+include(":passenger-test")

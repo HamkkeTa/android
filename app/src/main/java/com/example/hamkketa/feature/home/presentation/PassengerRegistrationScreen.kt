@@ -61,12 +61,13 @@ internal fun PassengerRegistrationScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        "함께타 앱 → 블루투스 연결",
+                        "차량 블루투스 등록",
                         color = Ink,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Text("동승자의 함께타 앱에서 차량을 선택해 주세요.", color = Muted)
+                    Text("서비스는 동승자 앱 없이 이용하는 것을 목표로 합니다. 현재 목록은 등록 화면 예시입니다.", color = Muted)
+                    Text("개발용 BLE 검증은 별도의 ‘함께타 동승자 테스트’ 앱과 연결 ID를 사용합니다.", color = Muted)
                 }
             }
             Heading("찾은 기기", "UI 확인용 예시 기기 · 실제 검색 결과가 아닙니다")

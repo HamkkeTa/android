@@ -19,9 +19,11 @@ data class GroupDraft(val name: String = "", val members: List<RideMember> = emp
 class CarpoolViewModel @Inject constructor(
     private val repository: LocalRideGroupRepository,
     private val savedState: SavedStateHandle,
-    private val sessions: BoardingSessionRepository
+    private val sessions: BoardingSessionRepository,
+    val trips: com.example.hamkketa.data.ride.TripRepository? = null
 ) : ViewModel() {
     val data = repository.data
+    val boardingState = sessions.state
     val runningGroupId = savedState.getStateFlow<String?>("preview.runningGroup", null)
     private val gson = Gson()
     private val mutableDraft = MutableStateFlow(
@@ -31,7 +33,9 @@ class CarpoolViewModel @Inject constructor(
     val draft = mutableDraft.asStateFlow()
 
     init {
-        if (data.value.groups.none { it.id == runningGroupId.value }) {
+        if (trips != null) {
+            savedState["preview.runningGroup"] = trips.state.value.current?.group?.id
+        } else if (data.value.groups.none { it.id == runningGroupId.value }) {
             savedState["preview.runningGroup"] = null
         }
         repository.activate(runningGroupId.value)
@@ -61,6 +65,7 @@ class CarpoolViewModel @Inject constructor(
 
     fun start(groupId: String) {
         if (runningGroupId.value == null && data.value.groups.any { it.id == groupId }) {
+            if (trips != null && !trips.start(groupId)) return
             savedState["preview.runningGroup"] = groupId
             repository.activate(groupId)
             sessions.open()
@@ -68,6 +73,14 @@ class CarpoolViewModel @Inject constructor(
     }
 
     fun stop() {
+        if (trips != null && !trips.stop()) return
+        savedState["preview.runningGroup"] = null
+        repository.activate(null)
+        sessions.close()
+    }
+
+    fun finishInterrupted() {
+        if (trips?.finishInterrupted() != true) return
         savedState["preview.runningGroup"] = null
         repository.activate(null)
         sessions.close()

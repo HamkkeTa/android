@@ -26,8 +26,8 @@ object SettlementCalculator {
             val riders = (listOf(DRIVER) + segment.passengerIds).distinct()
             val payers = riders.filter {
                 when (rule) {
-                    SplitRule.Equal -> true
-                    SplitRule.Passengers -> it != DRIVER
+                    SplitRule.Equal -> it == DRIVER || it !in exempt
+                    SplitRule.Passengers -> it != DRIVER && it !in exempt
                     SplitRule.Exempt -> it == DRIVER || it !in exempt
                 }
             }.ifEmpty { listOf(DRIVER) }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -21,7 +22,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.example.hamkketa.R
 import com.example.hamkketa.core.mvi.UiState
-import com.example.hamkketa.domain.ride.BoardingSessionRepository
+import com.example.hamkketa.data.ride.TripRepository
+import com.example.hamkketa.domain.ride.activePassengerIds
 import com.example.hamkketa.ui.theme.HamkkeTaTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -34,11 +36,10 @@ data class RiderStatusState(val riderCount: Int = 0) : UiState
 
 // Display-only widget: no intents because the driver never touches it.
 @HiltViewModel
-class RiderStatusViewModel @Inject constructor(sessionRepository: BoardingSessionRepository) :
-    ViewModel() {
+class RiderStatusViewModel @Inject constructor(tripRepository: TripRepository) : ViewModel() {
     val state: StateFlow<RiderStatusState> =
-        sessionRepository.state
-            .map { RiderStatusState(riderCount = it.riders.size) }
+        tripRepository.state
+            .map { RiderStatusState(riderCount = it.current?.activePassengerIds()?.size ?: 0) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RiderStatusState())
 }
 
@@ -59,7 +60,7 @@ fun RiderStatusWidget(state: RiderStatusState, modifier: Modifier = Modifier) {
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
         horizontalArrangement = Arrangement.spacedBy(RiderStatusWidgetDefaults.IconSpacing)
     ) {
-        repeat(state.riderCount) {
+        repeat(state.riderCount.coerceAtLeast(1)) {
             Icon(
                 painter = painterResource(RiderStatusWidgetDefaults.IconRes),
                 contentDescription = null,
@@ -67,6 +68,7 @@ fun RiderStatusWidget(state: RiderStatusState, modifier: Modifier = Modifier) {
                 tint = RiderStatusWidgetDefaults.iconColor()
             )
         }
+        Text(state.riderCount.toString(), style = MaterialTheme.typography.headlineMedium)
     }
 }
 

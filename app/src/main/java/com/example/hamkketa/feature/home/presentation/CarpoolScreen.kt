@@ -44,8 +44,21 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeRoute(modifier: Modifier = Modifier, viewModel: CarpoolViewModel = hiltViewModel()) {
     val data by viewModel.data.collectAsStateWithLifecycle()
+    val boarding by viewModel.boardingState.collectAsStateWithLifecycle()
     val runningId by viewModel.runningGroupId.collectAsStateWithLifecycle()
     val draft by viewModel.draft.collectAsStateWithLifecycle()
+    val restricted by rememberDrivingRestrictions()
+    if (restricted) {
+        androidx.compose.foundation.layout.Box(
+            modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopEnd
+        ) {
+            com.example.hamkketa.feature.boarding.presentation.RiderStatusRoute(
+                Modifier.padding(24.dp)
+            )
+        }
+        return
+    }
     var page by rememberSaveable { mutableStateOf("그룹") }
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var ledgerId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -69,7 +82,19 @@ fun HomeRoute(modifier: Modifier = Modifier, viewModel: CarpoolViewModel = hiltV
                 .padding(horizontal = if (wide) 44.dp else 20.dp, vertical = 28.dp),
             verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
+            Row {
+                Text("BLE: ${boarding.status}", Modifier.padding(12.dp), color = Muted)
+                TextButton(onClick = { page = "운행 설정" }) { Text("운행 설정 · 테스트 · 실제 장부") }
+                TextButton(onClick = { page = "그룹" }) { Text("그룹으로") }
+                if (runningId != null) TextButton(onClick = viewModel::stop) { Text("운행 종료") }
+                if (runningId != null) {
+                    TextButton(onClick = viewModel::finishInterrupted) {
+                        Text("미확인 운행 종료 · 정산 보류")
+                    }
+                }
+            }
             when (page) {
+                "운행 설정" -> ScreenTitle("운행 설정 · 실제 장부", onBack = back)
                 "그룹", "장부" -> AppHeader(page, wide) { next -> page = next }
                 "동승자 등록" -> ScreenTitle("동승자 등록", onBack = back)
                 "분담 규칙" -> ScreenTitle("분담 규칙 설정", group?.name, back)
@@ -82,6 +107,7 @@ fun HomeRoute(modifier: Modifier = Modifier, viewModel: CarpoolViewModel = hiltV
                 )
             }
             when (page) {
+                "운행 설정" -> viewModel.trips?.let { TripScreen(it, data.groups) }
                 "그룹" -> TwoColumns(wide, first = {
                     Column(
                         Modifier.padding(top = if (wide) 65.dp else 0.dp),
@@ -99,8 +125,12 @@ fun HomeRoute(modifier: Modifier = Modifier, viewModel: CarpoolViewModel = hiltV
                                 onStart = {
                                     selectedId = item.id
                                     viewModel.start(item.id)
+                                    page = "운행 설정"
                                 },
-                                onStop = viewModel::stop,
+                                onStop = {
+                                    viewModel.stop()
+                                    page = "운행 설정"
+                                },
                                 onRules = {
                                     selectedId = item.id
                                     creating = false
@@ -216,7 +246,8 @@ fun HomeRoute(modifier: Modifier = Modifier, viewModel: CarpoolViewModel = hiltV
                         }
                     )
                 }
-                "장부" -> LedgerScreen(
+                "장부" -> viewModel.trips?.let { ActualLedger(it, data.groups) }
+                "예시 장부" -> LedgerScreen(
                     data.groups,
                     ledgerGroup,
                     trips,
@@ -243,9 +274,9 @@ fun HomeRoute(modifier: Modifier = Modifier, viewModel: CarpoolViewModel = hiltV
             }
             Text(
                 if (runningId != null) {
-                    "UI 미리보기 · 자동 시작 상태입니다. 실제 주행·비용 계산은 수행하지 않습니다."
+                    "운행 기록 중 · 거리 출처와 탑승 상태는 운행 설정에서 확인해 주세요."
                 } else {
-                    "UI 미리보기 · 기기와 운행 기록·금액은 예시입니다. 실제 주행 중에는 조작하지 마세요."
+                    "예시 그룹이 포함되어 있습니다. 운행 기록은 장부에서 확인하세요. 주행 중 조작 금지."
                 },
                 color = Muted,
                 fontSize = 13.sp
